@@ -7,54 +7,62 @@ This project is a Campus Event Notification Service based on the publish/subscri
 ### Setup
 
 ```bash
+cd CENS
+
 # create a venv
 python -m venv venv
+
 # activate venv
 source venv/bin/activate
+
 # Install the requirements
 pip install -r requirements.txt
+
+# build the CENS service
+python -m build
+
+# Install the service
+pip install dist/CampusEventNotificationService-1.0-py3-none-any.whl
 ```
 
 ### Local Execution
 
 ```bash
 # Start register
-$ cd CENS/register
-$ python3 server_node_runner.py -v -c reg_config.json
+$ start_registration -v -c src/campus_event_notification_service/configs/reg_config.json 
 
 # start the server nodes in multiple terminals
-$ cd CENS/server_node/
-$ python3 server_node_runner.py -v -c node_config.json
+$ start_server_nodes -v -c src/campus_event_notification_service/configs/node_config.json
 
 # Start the subscriber
-$ cd CENS/subscriber/
-$ python3 server_node_runner.py -v -c subscriber_config.json
+$ start_subscriber -v -c src/campus_event_notification_service/configs/subscriber_config.json
 
 # Start the publisher
-$ cd CENS/publisher/
-$ python3 server_node_runner.py -v -c publisher_config.json                                   
+$ start_publisher -v -c src/campus_event_notification_service/configs/publisher_config.json                                
 
 ```
 
 ### Using EC2 instances
 
+update the configs with the IP addresses of EC2 machines. Ensure EC2 instances are in the same VPC and inbound/outbound rules are updated to allow connection between the instances.
+
 ```bash
 # SSh into the instance
 ssh -i path_to_key_pair.pem_fle ec2-user@ip_instance
+```
+Run the setup again
 
-# Start the register
-cd distributedSystem/register/
-python3 server_node_runner.py -v -c ../local_config.json
+```bash
+# Start register
+$ start_registration -v -c src/campus_event_notification_service/configs/reg_config.json 
 
-# Start the server nodes
-cd distributedSystem/server_node/
-python3 server_node_runner.py -v -c ../local_config.json
+# start the server nodes in multiple terminals
+$ start_server_nodes -v -c src/campus_event_notification_service/configs/node_config.json
 
 # Start the subscriber
-$ cd distributedSystem/subscriber/
-$ python3 server_node_runner.py -v -c ../local_config_subscriber.json
+$ start_subscriber -v -c src/campus_event_notification_service/configs/subscriber_config.json
 
 # Start the publisher
-$ cd distributedSystem/publisher/
-$ python3 server_node_runner.py -v -c ../local_config_publisher.json  
+$ start_publisher -v -c src/campus_event_notification_service/configs/publisher_config.json                                
+  
 ```
