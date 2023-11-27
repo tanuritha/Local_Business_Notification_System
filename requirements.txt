@@ -1,0 +1,10 @@
+setuptools
+Poetry
+flake8
+black
+mypy
+django-stubs
+pylint
+pytest
+pyfiglet
+build

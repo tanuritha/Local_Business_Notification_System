@@ -1,0 +1,10 @@
+[MASTER]
+extension-pkg-whitelist=cv2
+
+[MESSAGES CONTROL]
+disable=fixme
+
+[TYPECHECK]
+# Run mypy as part of pylint checks (requires mypy to be installed)
+check-untyped-defs = yes
+ignore-missing-imports = yes

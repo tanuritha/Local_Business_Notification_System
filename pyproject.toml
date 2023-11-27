@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools","poetry", "wheel", "pep517", "pytest"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.flake8]
+max-line-length = 88
+exclude = '.git,__pycache__,venv'
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+
+[tool.pytest]
+addopts = ["-ra", "--color=yes", "--cov=BasicProject", "--cov-report=term-missing", "--cov-fail-under=100"]
+testpaths = ["tests"]
