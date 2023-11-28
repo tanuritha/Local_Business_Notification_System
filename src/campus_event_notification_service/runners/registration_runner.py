@@ -33,8 +33,8 @@ def run_registration():
     print("This service is responsible for assigning ID to the servers\n")
 
     register = Register(args.verbose, args.config_file)
-    register.receiveConnectionRequest()
-    register.sendDetails()
+    register.receive_connection_request()
+    register.send_details()
 
 
 if __name__ == "__main__":

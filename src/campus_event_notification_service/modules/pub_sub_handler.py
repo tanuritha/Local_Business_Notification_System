@@ -43,7 +43,7 @@ class PubSub:
         """
         Listens for connections from clients. When a client connects, it receives data from the client,
         increments the client count, and determines which server should handle the client based on the client count.
-        If this node is the leader and should handle the client, it calls processClientData. Otherwise, it sends the client data
+        If this node is the leader and should handle the client, it calls process_client_data. Otherwise, it sends the client data
         to the server that should handle it.
         """
 
@@ -75,7 +75,7 @@ class PubSub:
 
                 if self.nodes[index]["id"] == self.id:
                     print("Leader will handle the client\n")
-                    self.processClientData(data)
+                    self.process_client_data(data)
                 else:
                     print("Sending the client data to the server...\n")
                     self.send_client_data_to_server(data, self.nodes[index])
@@ -103,7 +103,7 @@ class PubSub:
             data (dict): The client data to send.
             info (dict): Information about the server to send the data to.
         """
-        leader_ephemeral_socket = helper.initialize_socket(self.ip)
+        temp_socket = helper.initialize_socket(self.ip)
         msg = helper.create_server_message(
             self.id, Type["CONNECT_TO_CLIENT"].value, data
         )
@@ -112,15 +112,15 @@ class PubSub:
 
         try:
             print(f"Sending client data to server {info}\n\n")
-            leader_ephemeral_socket.connect(client_handler_address)
-            leader_ephemeral_socket.send(msg)
+            temp_socket.connect(client_handler_address)
+            temp_socket.send(msg)
             print("Data sent to server.")
-            leader_ephemeral_socket.close()
+            temp_socket.close()
         except BaseException as e:
             print("Error in sending data to server: ", e)
-            leader_ephemeral_socket.close()
+            temp_socket.close()
 
-    def processClientData(self, data):
+    def process_client_data(self, data):
         """
         Handles a client based on its type.
 
@@ -134,7 +134,7 @@ class PubSub:
             self.process_subscriber(data)
         elif data["client_type"] == "publisher":
             print("This is a publisher\n")
-            self.processPublisher(data)
+            self.process_publisher(data)
         else:
             print("Unknown Client Type\n")
 
@@ -162,18 +162,18 @@ class PubSub:
 
         print(f"Subscriber list = {school_subscribers_dict}")
 
-    def processPublisher(self, data):
+    def process_publisher(self, data):
         """
         Starts a new thread to listen to a publisher.
 
         Args:
             data (dict): The publisher data.
         """
-        thread = Thread(target=self.listenToPublisher, args=(data,))
+        thread = Thread(target=self.listen_to_publisher, args=(data,))
         thread.daemon = True
         thread.start()
 
-    def listenToPublisher(self, publisher):
+    def listen_to_publisher(self, publisher):
         """
         Listens to a publisher. When a message is received from the publisher, it is published to the relevant subscribers
         and broadcast to the other nodes.
@@ -197,14 +197,14 @@ class PubSub:
                 data = eval(conn.recv(BUFF_SIZE).decode("utf-8"))
                 print(f"Data received from publisher: {data}")
 
-                self.publishEventToSubscribers(data["school"], data["event"])
+                self.publish_event_to_subscribers(data["school"], data["event"])
                 self.broadcast(data)
         except BaseException as e:
             print("Error:", e)
 
         publisher_socket.close()
 
-    def publishEventToSubscribers(self, school, event):
+    def publish_event_to_subscribers(self, school, event):
         """
         Publishes a message to all subscribers of a school.
 
@@ -214,7 +214,6 @@ class PubSub:
         """
 
         print("Sending the data to the subscribers\n")
-        # print(f"Publishing message to subscribers of school {school}\n")
         subscribers = school_subscribers_dict.get(school, set())
         print(f"Subscribers for school {school} = {subscribers}")
 
@@ -235,7 +234,7 @@ class PubSub:
             if info["id"] == self.id:
                 continue
 
-            leader_ephemeral_socket = helper.initialize_socket(self.ip)
+            temp_socket = helper.initialize_socket(self.ip)
             msg = helper.create_server_message(
                 self.id, Type["PUBLISH_DATA_TO_SUBSCRIBERS"].value, data
             )
@@ -244,9 +243,9 @@ class PubSub:
 
             try:
                 print(f"Sending client data to server {info}\n\n")
-                leader_ephemeral_socket.connect(client_handler_address)
-                leader_ephemeral_socket.send(msg)
-                leader_ephemeral_socket.close()
+                temp_socket.connect(client_handler_address)
+                temp_socket.send(msg)
+                temp_socket.close()
             except BaseException as e:
                 print("Error in sending data to server: ", e)
-                leader_ephemeral_socket.close()
+                temp_socket.close()

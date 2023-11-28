@@ -9,6 +9,13 @@ from src.campus_event_notification_service.utils import utils as helper
 
 class Register:
     def __init__(self, verbose: bool, config_path: str):
+        """
+        Initialize the Register class.
+
+        Args:
+            verbose (bool): A flag used for enabling verbose logging.
+            config_path (str): The path to the configuration file.
+        """
         with open(config_path, "r") as config_file:
             config = json.load(config_file)
 
@@ -26,7 +33,14 @@ class Register:
 
         signal.signal(signal.SIGINT, self.handler_log_msgs)
 
-    def receiveConnectionRequest(self):
+    def receive_connection_request(self):
+        """
+        Listen for incoming connection requests and handle them.
+
+        This method starts a server that listens for incoming connection requests.
+        When a request is received, it generates an identifier for the new connection,
+        stores the connection details, and prints the details.
+        """
         self.sock.listen()
         print("Register is listening on port {}".format(self.my_port))
         ids = []
@@ -65,7 +79,14 @@ class Register:
         else:
             print("Register did not receive any server\n")
 
-    def sendDetails(self):
+    def send_details(self):
+        """
+        Send the details of the registered servers to each server.
+
+        This method encodes the server details into a byte string and sends it to each server.
+        If a server does not acknowledge the receipt of the details within a timeout period,
+        an error message is printed.
+        """
         data = str(self.nodes).encode("utf-8")
         for node in range(len(self.nodes)):
             print("Sending the details of the servers to the servers....")
@@ -75,14 +96,23 @@ class Register:
             except socket.timeout:
                 print("Error: no ack from server_node on port {}".format(port))
 
-        self.close()
+        self.sock.close()
+        sys.exit(1)
 
     def handler_log_msgs(self, signum: int, frame):
+        """
+        Handle log messages.
+
+        This method is triggered when a signal is received. It logs a message indicating
+        that the Register was killed, along with the Register's IP and port.
+
+        Args:
+            signum (int): The signal number.
+            frame: The current stack frame.
+        """
         self.logging.debug(
             "[Register]: (ip:{} port:{})\n[Killed]\n".format(self.my_ip, self.my_port)
         )
-        self.close()
-
-    def close(self):
         self.sock.close()
         sys.exit(1)
+        

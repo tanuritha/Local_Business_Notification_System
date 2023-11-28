@@ -351,14 +351,14 @@ class BullyLeaderElection:
                 print(f"Data received from client: {data}")
                 connection.close()
 
-                self.pub_sub.processClientData(data)
+                self.pub_sub.process_client_data(data)
                 continue
 
             elif data["type"] == Type["PUBLISH_DATA_TO_SUBSCRIBERS"].value:
                 print(f"Data received from Publisher: {data}")
                 connection.close()
 
-                self.pub_sub.publishEventToSubscribers(data["school"], data["event"])
+                self.pub_sub.publish_event_to_subscribers(data["school"], data["event"])
                 continue
 
             elif data["type"] == Type["SUBSCRIBE"].value:
@@ -454,9 +454,14 @@ class HeartBeat:
         self.start_heartbeat()
 
     def start_heartbeat(self):
+        """
+        Creates a hearbeat socket and starts sending heartbeat to the leader node. 
+        If the leader node is not available, handle_crash is called.
+        
+        """
         while True:
-            hb_sock = helper.initialize_socket(self.nodeIP)
-            address = hb_sock.getsockname()
+            heratbeat_socket = helper.initialize_socket(self.nodeIP)
+            address = heratbeat_socket.getsockname()
 
             time.sleep(HEARTBEAT_TIME)
             self.lock.acquire()
@@ -478,11 +483,11 @@ class HeartBeat:
 
             print("Heartbeat message is created")
             try:
-                hb_sock.connect(dest)
+                heratbeat_socket.connect(dest)
                 print(f"sending heartbeat to the leader node with id: {info['id']}")
-                hb_sock.send(msg)
+                heratbeat_socket.send(msg)
                 self.receive_acknowledgement(
-                    hb_sock,
+                    heratbeat_socket,
                     dest,
                     TOTAL_DELAY,
                     self.algo,
@@ -493,10 +498,15 @@ class HeartBeat:
                 print(f"received ack from the Leader\n\n")
 
             except ConnectionRefusedError:
-                hb_sock.close()
+                heratbeat_socket.close()
                 self.handle_crash(self.algo, self.lock)
 
     def receive_acknowledgement(self, sock, dest, waiting, algo, nodes, lock, leaderID):
+        """
+        Processes the hearbeat acknowledgement received from leader. 
+        If the acknowledgement is not received within the waiting time,
+        handle_crash is called.
+        """
         start = round(time.time())
         sock.settimeout(waiting)
 
@@ -528,7 +538,10 @@ class HeartBeat:
         sock.close()
 
     def handle_crash(self, algo, lock):
-        # if self.algo == False:
+        """
+        Handles the crash of the leader node. Initiates a new election.
+
+        """
         self.nodes.pop()
         lock.release()
         BullyLeaderElection(

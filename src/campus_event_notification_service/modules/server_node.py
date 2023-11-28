@@ -7,7 +7,7 @@ from src.campus_event_notification_service.constants.constants import (
     DEFAULT_ID,
 )
 from src.campus_event_notification_service.utils import utils as helper
-from .bully_leader_election import BullyLeaderElection, Type
+from .leader_election_heartbeat import BullyLeaderElection, Type
 
 
 class ServerNode:
@@ -18,29 +18,50 @@ class ServerNode:
         configuration_path_value: str,
         delay_time_interval: bool,
     ):
+        """
+        Initialize the ServerNode class.
+
+        Args:
+            log_data (bool): A flag used for enabling verbose logging.
+            is_bully (bool): A flag used to determine if the node is a bully.
+            configuration_path_value (str): The path to the configuration file.
+            delay_time_interval (bool): A flag used to determine if there should be a delay in the time interval.
+        """
+
+        # Load configuration values from the provided file
         with open(configuration_path_value, "r") as configuration_file:
             configValues = json.load(configuration_file)
 
+        # Initialize class attributes based on the configuration values and provided arguments
         self.algorithm = is_bully
-        self.registerPort = configValues["register"]["port"]
-        self.registerIP = configValues["register"]["ip"]
+        self.register_port = configValues["register"]["port"]
+        self.register_ip = configValues["register"]["ip"]
         self.delay = delay_time_interval
-        self.leaderIP = configValues["leader"]["ip"]
-        self.leaderPort = configValues["leader"]["port"]
+        self.leader_ip = configValues["leader"]["ip"]
+        self.leader_port = configValues["leader"]["port"]
         self.nodeIP = configValues["node"]["ip"]
         self.verbose = log_data
 
     def start_server(self):
-        socket_registry_service = helper.initialize_socket(self.nodeIP)
+        
+        """
+        Start the server.
+
+        This method initializes the server, sets up the necessary sockets, and starts listening for connections.
+        It also handles the registration of the server with the register service.
+        """
+
+        # Initialize socket for registry service
+        register_socket = helper.initialize_socket(self.nodeIP)
 
         sock_temp = helper.initialize_socket(self.nodeIP)
         sock_temp.listen()
 
-        # socket used in listening phase
+        # Initialize temporary socket and set it to listen
         sock = helper.initialize_socket(self.nodeIP)
         sock.listen()
 
-        logging = logData()
+        logging = helper.configure_logging()
 
         msg = helper.build_message(
             DEFAULT_ID,
@@ -48,20 +69,21 @@ class ServerNode:
             sock.getsockname()[1],
             sock.getsockname()[0],
         )
-        destnation = (self.registerIP, self.registerPort)
+        destnation = (self.register_ip, self.register_port)
 
         try:
             print("Trying to connect to register service")
-            socket_registry_service.connect(destnation)
+            register_socket.connect(destnation)
         except ConnectionRefusedError:
             print("Register node not available")
             sock.close()
             sys.exit(1)
 
+        # Send registration message to the registry service
         print("Connected to register service, sending message to register service")
-        socket_registry_service.send(msg)
+        register_socket.send(msg)
 
-        data = socket_registry_service.recv(BUFF_SIZE)
+        data = register_socket.recv(BUFF_SIZE)
 
         print("Received data from register service")
         if not data:
@@ -74,8 +96,9 @@ class ServerNode:
 
         print("The ID assigned to this node is : ", identifier)
         print("The list of nodes received from register service is : ", data)
-        socket_registry_service.close()
+        register_socket.close()
 
+        # Check if there are enough nodes
         if len(data) == 1:
             sock.close()
             print("Not enough nodes generated!")
@@ -91,16 +114,6 @@ class ServerNode:
                 self.verbose,
                 self.delay,
                 self.algorithm,
-                self.leaderIP,
-                self.leaderPort,
+                self.leader_ip,
+                self.leader_port,
             )
-
-
-def logData() -> logging:
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="[%(levelname)s] %(asctime)s\n%(message)s",
-        datefmt="%b-%d-%y %I:%M:%S",
-    )
-
-    return logging

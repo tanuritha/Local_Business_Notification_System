@@ -76,15 +76,13 @@ class Subscriber:
             subscriber_socket.bind(address)
             subscriber_socket.listen(5)
             print("This subscriber is listening to address: ", address)
-            # print(f"Listening to address {address}")
-            # print(f"This subscriber is now Listening to address")
+            
 
             conn, addr = subscriber_socket.accept()
             print("waiting for data...")
             while True:
                 data = conn.recv(BUFF_SIZE)
                 if data != "":
-                    # msg = data.decode('utf-8')
                     msg = json.loads(data.decode("utf-8"))
                     print(f"\nData Received from the publisher.\n")
                     print(

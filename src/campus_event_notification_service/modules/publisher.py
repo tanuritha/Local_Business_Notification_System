@@ -63,7 +63,6 @@ class Publisher:
                 school = input("Enter the School name: ")
                 event = input("Enter the event name: ")
 
-                # Display the user input
                 user_input = {"school": school, "event": event}
 
                 encoded_data = str(user_input).encode("utf-8")

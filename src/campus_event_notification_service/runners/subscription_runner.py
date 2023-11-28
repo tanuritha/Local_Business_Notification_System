@@ -1,8 +1,6 @@
 import argparse
 import pyfiglet
 import os
-import sys
-
 from src.campus_event_notification_service.modules.subscriber import Subscriber
 
 
