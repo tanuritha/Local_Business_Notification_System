@@ -1,7 +1,7 @@
 import argparse
 import pyfiglet
 import os
-from src.campus_event_notification_service.modules.publisher import Publisher
+from src.local_buisness.modules.publisher import Publisher
 
 
 def run_publisher():

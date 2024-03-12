@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 
 HEARTBEAT_TIME = 5
 LISTENING = 10
@@ -25,3 +25,16 @@ class Type(Enum):
     PING = 7
     CONNECT_TO_CLIENT = 8
     PUBLISH_DATA_TO_SUBSCRIBERS = 9
+    UPDATE_BUSINESS_TYPE = 10
+    PUBLISH_OFFER = auto()
+    UPDATE_INTERESTS = auto()
+
+# New default configurations
+DEFAULT_BUSINESS_TYPE = "General"
+MAX_MESSAGE_SIZE = 4096
+
+# New error codes
+class ErrorCode(Enum):
+    UNREGISTERED_NODE = 1
+    INVALID_BUSINESS_TYPE = 2
+    MESSAGE_SIZE_EXCEEDED = 3

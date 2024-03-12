@@ -2,7 +2,7 @@ import argparse
 import pyfiglet
 import os
 
-from src.campus_event_notification_service.modules.server_node import ServerNode
+from src.local_buisness.modules.server_node import ServerNode
 
 
 def run_server_node():

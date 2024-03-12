@@ -3,8 +3,8 @@ import signal
 import socket
 import sys
 
-from src.campus_event_notification_service.constants import constants as const
-from src.campus_event_notification_service.utils import utils as helper
+from src.local_buisness.constants import constants as const
+from src.local_buisness.utils import utils as helper
 
 
 class Register:
@@ -49,25 +49,31 @@ class Register:
             try:
                 conn, addr = self.sock.accept()
                 data = conn.recv(const.BUFF_SIZE)
-                msg = eval(data.decode("utf-8"))
-                server_ip = {"ip": addr[0]}
-                print(
-                    "A server is trying to register with the following ip : ", server_ip
-                )
-                if msg["type"] != const.REGISTER:
+                msg = json.loads(data.decode("utf-8"))
+
+                print(f"A server is trying to register from {addr}")
+
+                if 'type' not in msg or msg['type'] != const.REGISTER:
+                    print("Invalid registration request received.")
                     conn.close()
                     continue
 
-                identifier = helper.generate_identifier(ids)
+                # Handling new fields: node type and interests/business categories if applicable
+                node_type = msg.get("node_type", "generic")  # Default to 'generic' if not specified
+                interests = msg.get("interests", [])  # Specific for subscribers
+
+                identifier = helper.generate_identifier([node['id'] for node in self.nodes])
                 self.connections.append(conn)
-                node = dict({"ip": addr[0], "port": msg["port"], "id": identifier})
+                node = {
+                    "ip": addr[0],
+                    "port": msg["port"],
+                    "id": identifier,
+                    "type": node_type,  # Store the node type
+                    "interests": interests  # Store interests if any
+                }
                 self.nodes.append(node)
 
-                print(
-                    "An ID is assigned to the server and the details are :",
-                    {"ip": addr[0], "port": msg["port"], "id": identifier},
-                )
-                print("\n")
+                print(f"Assigned ID {identifier} to the server with details: {node}")
 
             except socket.timeout:
                 break

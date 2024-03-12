@@ -5,7 +5,11 @@ import time
 from math import floor
 from random import randint
 
-from src.campus_event_notification_service.constants import constants as const
+from src.local_buisness.constants import constants as const
+
+BUFF_SIZE = const.BUFF_SIZE
+Type = const.Type
+ErrorCode = const.ErrorCode
 
 
 def initialize_socket(node_ip: str) -> socket:
@@ -63,7 +67,7 @@ def create_server_message(id: int, type: int, data: dict) -> bytes:
 
 
 def build_message(
-    node_id: int, type_of_msg: int, port_details: int, ip_value: str
+    node_id: int, type_of_msg: Type, port_details: int, ip_value: str
 ) -> bytes:
     """
     Builds a message.
@@ -118,7 +122,27 @@ def generate_identifier(list: list):
     if identifier not in list:
         return identifier
     else:
-        generate_identifier(list)
+        return generate_identifier(list)
+    
+def parse_message(data: bytes) -> dict:
+    """
+    Parses a byte string into a dictionary, safely handling JSON decoding.
+    """
+    try:
+        return json.loads(data.decode("utf-8"))
+    except json.JSONDecodeError:
+        logging.error("Failed to decode message.")
+        return {}
+    
+def parse_message(data: bytes) -> dict:
+    """
+    Parses a byte string into a dictionary, safely handling JSON decoding.
+    """
+    try:
+        return json.loads(data.decode("utf-8"))
+    except json.JSONDecodeError:
+        logging.error("Failed to decode message.")
+        return {}
 
 
 def configure_logging() -> logging:

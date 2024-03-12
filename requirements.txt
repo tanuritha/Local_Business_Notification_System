@@ -8,3 +8,5 @@ pylint
 pytest
 pyfiglet
 build
+pytest==6.2.4
+pyfiglet==0.8.post1

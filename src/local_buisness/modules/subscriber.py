@@ -2,6 +2,10 @@ import json
 import socket
 import sys
 from threading import Thread
+import time
+
+from src.local_buisness.constants.constants import Type
+
 
 BUFF_SIZE = 1024
 
@@ -19,11 +23,12 @@ class Subscriber:
         with open(config_path, "r") as config_file:
             config = json.load(config_file)
 
+        
         self.port_leader = config["leader"]["port"]
         self.ip_leader = config["leader"]["ip"]
         self.ip = config["subscriber"]["ip"]
         self.port = config["subscriber"]["port"]
-        self.school = config["subscriber"]["school"]
+        self.interests = config["subscriber"].get("interests", [])
         self.verbose = verbose
 
     def start_service(self):
@@ -39,19 +44,18 @@ class Subscriber:
 
     def connect_with_server(self):
         """
-        Connects to the server. Sends a message to the leader about the port that the subscriber is listening to and the topics that it is interested in.
+        Connects to the server. Sends a message to the leader about the port that the subscriber is listening to and the interests that it has.
         """
-
         msg = {
             "client_type": "subscriber",
             "ip": self.ip,
             "port": self.port,
-            "school": self.school,
+            "interests": self.interests,
         }
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.settimeout(None)
+        server_socket.settimeout(None)  
         address = (self.ip_leader, self.port_leader)
 
         try:
@@ -61,8 +65,9 @@ class Subscriber:
             print("Connection request sent to the leader")
         except BaseException as e:
             print("Unable to connect to Leader", e)
+        finally:
+            server_socket.close()
 
-        server_socket.close()
 
     def listen_to_port(self):
         """
@@ -76,22 +81,30 @@ class Subscriber:
             subscriber_socket.bind(address)
             subscriber_socket.listen(5)
             print("This subscriber is listening to address: ", address)
-            
 
-            conn, addr = subscriber_socket.accept()
-            print("waiting for data...")
             while True:
-                data = conn.recv(BUFF_SIZE)
-                if data != "":
-                    msg = json.loads(data.decode("utf-8"))
-                    print(f"\nData Received from the publisher.\n")
-                    print(
-                        "The school",
-                        msg["school"],
-                        " has announced the following event: ",
-                        msg["event"],
-                    )
+                conn, addr = subscriber_socket.accept()
+                print(f"Connection established with {addr}, waiting for data...")
+                # Using a loop to handle multiple messages
+                while True:
+                    data = conn.recv(BUFF_SIZE)
+                    if not data:
+                        print("No more data received. Closing connection.")
+                        break  # Exit the inner loop if no data is received to wait for another connection.
 
-        except BaseException as e:
-            print("Exception:", e)
+                    msg = json.loads(data.decode("utf-8"))
+                    print(f"\nData Received from the publisher: {msg}\n")
+                    # Process based on interests
+
+                    if "businessType" in msg and msg["businessType"] in self.interests:
+                        print(f"New offer from {msg['businessType']}: {msg.get('offer', 'No offer details')}")
+                    else:
+                        print("Received message does not match subscribed interests or lacks 'businessType'.")
+
+        except Exception as e:
+            print(f"Exception occurred: {e}")
             sys.exit(1)
+        finally:
+            conn.close()
+            subscriber_socket.close()
+

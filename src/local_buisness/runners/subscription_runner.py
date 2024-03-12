@@ -1,13 +1,12 @@
 import argparse
-import os
 import pyfiglet
+import os
+from src.local_buisness.modules.subscriber import Subscriber
 
-from src.campus_event_notification_service.modules.registration import Register
 
-
-def run_registration():
+def run_subscriber():
     parser = argparse.ArgumentParser(
-        description="Implementation of distributed election algorithms.\nRegister server_node."
+        description="Implementation of distributed election algorithms.\nGeneric server_node."
     )
 
     parser.add_argument(
@@ -28,14 +27,12 @@ def run_registration():
     args = parser.parse_args()
 
     os.system("clear")
-    intro = pyfiglet.figlet_format("REGISTER SERVICE", font="slant")
+    intro = pyfiglet.figlet_format("SUBSCRIBER", font="slant")
     print(intro)
-    print("This service is responsible for assigning ID to the servers\n")
 
-    register = Register(args.verbose, args.config_file)
-    register.receive_connection_request()
-    register.send_details()
+    subscriber_node = Subscriber(args.verbose, args.config_file)
+    subscriber_node.start_service()
 
 
 if __name__ == "__main__":
-    run_registration()
+    run_subscriber()

@@ -5,7 +5,7 @@
     },
     "subscriber": {
         "ip": "127.0.0.1",
-        "port": 8083,
-        "school": ["SOE"]
+        "port": 8084,
+        "interests": ["Food"]
     }
 }

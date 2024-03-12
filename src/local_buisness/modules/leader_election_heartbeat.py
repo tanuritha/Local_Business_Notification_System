@@ -6,14 +6,14 @@ import sys
 import time
 from threading import Thread, Lock, Event
 
-from src.campus_event_notification_service.constants.constants import (
+from src.local_buisness.constants.constants import (
     TOTAL_DELAY,
     BUFF_SIZE,
     DEFAULT_ID,
     HEARTBEAT_TIME,
     Type,
 )
-from src.campus_event_notification_service.utils import utils as helper
+from src.local_buisness.utils import utils as helper
 from .pub_sub_handler import PubSub
 
 
@@ -31,22 +31,6 @@ class BullyLeaderElection:
         leader_node_ip: str,
         leader_node_port: int,
     ):
-        """
-        Initializes a new instance of the Bully_leader_election class.
-
-        Args:
-            current_node_ip (str): The IP address of the current node.
-            current_node_port (int): The port of the current node.
-            id (int): The ID of the current node.
-            nodes_topology_entities (list): The list of nodes in the network.
-            socket (socket): The socket for the current node.
-            log_data (bool): Whether to log data.
-            delay_time_interval (bool): Whether to delay time intervals.
-            is_bully_algorithm (bool): Whether the bully algorithm is used.
-            leader_node_ip (str): The IP address of the leader node.
-            leader_node_port (int): The port of the leader node.
-        """
-
         self.checkedNodesLength = 0
 
         self.coordinatorMessageFlag = False
@@ -107,7 +91,6 @@ class BullyLeaderElection:
             self.lock,
             self.algoFlag,
         )
-
     def initiate_election(self):
         """
         Initiates a leader election. If this node has the highest ID among the nodes that are still up, it becomes the leader.
@@ -301,7 +284,7 @@ class BullyLeaderElection:
 
         self.lock.acquire()
         return 1
-
+    
     def monitor_connections(self):
         """
         Monitors connections to the node. If a connection is received, it starts a new thread to handle the connection.
@@ -316,9 +299,7 @@ class BullyLeaderElection:
                 connection, addr = self.socket.accept()
             except socket.timeout:
                 self.logging.debug(
-                    "[Node]: (ip:{} port:{} id:{})\n[Terminates]\n".format(
-                        self.nodeIP, self.nodePort, self.nodeId
-                    )
+                    f"[Node]: (ip:{self.nodeIP} port:{self.nodePort} id:{self.nodeId})\n[Terminates]\n"
                 )
                 self.socket.close()
                 os._exit(1)
@@ -358,11 +339,11 @@ class BullyLeaderElection:
                 print(f"Data received from Publisher: {data}")
                 connection.close()
 
-                self.pub_sub.publish_event_to_subscribers(data["school"], data["event"])
+                self.pub_sub.publish_event_to_subscribers(data["businessType"], data.get("offer", ""))
                 continue
 
             elif data["type"] == Type["SUBSCRIBE"].value:
-                if data["school"] == "PING":
+                if data["buisnessType"] == "PING":
                     data = {"response": "ACK"}
                     str(data).encode("utf-8")
                     print(data)
@@ -374,10 +355,10 @@ class BullyLeaderElection:
                     msg = helper.build_message(
                         self.nodeId, Type["SUBSCRIBE"].value, self.nodePort, self.nodeIP
                     )
-
                     connection.send(str(data).encode("utf-8"))
                 connection.close()
                 continue
+
 
             func = {
                 Type["ELECTION"].value: self.process_election_message,
@@ -389,7 +370,6 @@ class BullyLeaderElection:
             else:
                 print(f"Unknown type: {data['type']}")
             connection.close()
-
     def handler(self, signum: int, frame):
         """
         Handles a SIGINT signal. Shuts down the node and logs the shutdown.
@@ -418,8 +398,6 @@ class BullyLeaderElection:
         )
 
         return logging
-
-
 class HeartBeat:
     def __init__(
         self,
@@ -500,7 +478,6 @@ class HeartBeat:
             except ConnectionRefusedError:
                 heratbeat_socket.close()
                 self.handle_crash(self.algo, self.lock)
-
     def receive_acknowledgement(self, sock, dest, waiting, algo, nodes, lock, leaderID):
         """
         Processes the hearbeat acknowledgement received from leader. 
@@ -556,3 +533,8 @@ class HeartBeat:
             self.leaderIP,
             self.leaderPort,
         )
+
+
+
+
+            

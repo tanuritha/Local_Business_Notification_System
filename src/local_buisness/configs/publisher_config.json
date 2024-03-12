@@ -3,9 +3,9 @@
         "ip": "127.0.0.1",
         "port": 8090
     },
-    "subscriber": {
+    "publisher": {
         "ip": "127.0.0.1",
-        "port": 8084,
-        "school": ["LAW"]
+        "port": 8082,
+        "businessType": ["Restaurant", "Retail"]
     }
 }

@@ -3,8 +3,9 @@
         "ip": "127.0.0.1",
         "port": 8090
     },
-    "publisher": {
+    "subscriber": {
         "ip": "127.0.0.1",
-        "port": 8082
+        "port": 8083,
+        "interests": ["Food", "Retail"]
     }
 }

@@ -2,11 +2,11 @@ import json
 import logging
 import sys
 
-from src.campus_event_notification_service.constants.constants import (
+from src.local_buisness.constants.constants import (
     BUFF_SIZE,
     DEFAULT_ID,
 )
-from src.campus_event_notification_service.utils import utils as helper
+from src.local_buisness.utils import utils as helper
 from .leader_election_heartbeat import BullyLeaderElection, Type
 
 
@@ -38,7 +38,8 @@ class ServerNode:
         self.register_ip = configValues["register"]["ip"]
         self.delay = delay_time_interval
         self.leader_ip = configValues["leader"]["ip"]
-        self.leader_port = configValues["leader"]["port"]
+        #self.leader_port = configValues["leader"]["port"]
+        self.leader_port = 8090
         self.nodeIP = configValues["node"]["ip"]
         self.verbose = log_data
 
