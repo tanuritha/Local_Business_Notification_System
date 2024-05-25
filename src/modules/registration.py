@@ -3,8 +3,8 @@ import signal
 import socket
 import sys
 
-from src.local_buisness.constants import constants as const
-from src.local_buisness.utils import utils as helper
+from constants import constants as const
+from utils import utils as helper
 
 
 class Register:
@@ -80,10 +80,10 @@ class Register:
 
         self.nodes.sort(key=lambda x: x["id"])
         if self.nodes:
-            print("Register received the following servers and their details are:\n")
+            print("Register received the following servers. Their details are:\n")
             print(self.nodes)
         else:
-            print("Register did not receive any server\n")
+            print("Register did not receive a server\n")
 
     def send_details(self):
         """
@@ -100,7 +100,7 @@ class Register:
             try:
                 self.connections[node].send(data)
             except socket.timeout:
-                print("Error: no ack from server_node on port {}".format(port))
+                print("Error: no ACK received from server_node on port {}".format(port))
 
         self.sock.close()
         sys.exit(1)

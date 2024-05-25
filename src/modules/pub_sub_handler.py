@@ -2,8 +2,8 @@ import json
 import socket
 from threading import Thread
 
-from src.local_buisness.constants.constants import BUFF_SIZE, Type
-from src.local_buisness.utils import utils as helper
+from constants.constants import BUFF_SIZE, Type
+from utils import utils as helper
 
 business_subscribers_dict = {}
 
@@ -25,16 +25,16 @@ class PubSub:
         accept_client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         accept_client_socket.settimeout(None)
         address = (self.ip_leader, self.port_leader)
-        print("Leader is accepting publishers and subscribers\n")
+        print("Leader node is accepting clients(publishers and subscribers)\n")
 
         try:
             accept_client_socket.bind(address)
             accept_client_socket.listen()
             while True:
                 conn, addr = accept_client_socket.accept()
-                print("Connection Received from client...")
+                print("Received Connection from client")
                 data = eval(conn.recv(BUFF_SIZE).decode("utf-8"))
-                print("Data received from client: ", data)
+                print("Received Data from client: ", data)
                 self.process_client_data(data)
                 conn.close()
         except BaseException as e:
@@ -59,7 +59,7 @@ class PubSub:
             print("This is a Subscriber\n")
             self.process_subscriber(data)
         elif data["client_type"] == "publisher":
-            print("This is a publisher\n")
+            print("This is a Publisher\n")
             self.process_publisher(data)
         else:
             print("Unknown Client Type\n")

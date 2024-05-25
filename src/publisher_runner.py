@@ -1,19 +1,19 @@
 import argparse
 import pyfiglet
 import os
-from src.local_buisness.modules.publisher import Publisher
+from modules.publisher import Publisher
 
 
 def run_publisher():
     parser = argparse.ArgumentParser(
-        description="Implementation of distributed election algorithms.\nGeneric server_node."
+        description="Publisher Node"
     )
 
     parser.add_argument(
         "-v",
         "--verbose",
         default=False,
-        help="increase output verbosity",
+        help="Increases output verbosity",
         action="store_true",
     )
 
@@ -22,13 +22,13 @@ def run_publisher():
         "--config_file",
         action="store",
         required=True,
-        help="needed a config file in json format",
+        help="Requires JSON config file",
     )
 
     args = parser.parse_args()
 
     os.system("clear")
-    intro = pyfiglet.figlet_format("PUBLISHER", font="slant")
+    intro = pyfiglet.figlet_format("PUBLISHER", font="doom")
     print(intro)
 
     publisher_node = Publisher(args.verbose, args.config_file)

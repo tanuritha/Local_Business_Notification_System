@@ -5,15 +5,16 @@ import socket
 import sys
 import time
 from threading import Thread, Lock, Event
+from .heartbeat import HeartBeat
 
-from src.local_buisness.constants.constants import (
+from constants.constants import (
     TOTAL_DELAY,
     BUFF_SIZE,
     DEFAULT_ID,
     HEARTBEAT_TIME,
     Type,
 )
-from src.local_buisness.utils import utils as helper
+from utils import utils
 from .pub_sub_handler import PubSub
 
 
@@ -72,10 +73,10 @@ class BullyLeaderElection:
         thread.start()
 
         self.initiate_election()
-        print("Waiting until the leader is elected...")
+        print("Waiting for leader to be elected.")
         self.is_leader_elected.wait()
-        print("Leader is elected. The id of the leader is: ", self.leaderID)
-        print("Starting heartbeat...")
+        print("Leader election is complete.\nThe leader id is: ", self.leaderID)
+        print("Starting heartbeat")
         HeartBeat(
             self.nodeIP,
             self.nodePort,
@@ -97,10 +98,10 @@ class BullyLeaderElection:
         Then, it sends an END message to all other nodes to inform them that the election is over and it is the new leader.
         Finally, it starts a new thread to listen to clients.
         """
-        print("Starting leader election...")
+        print("Starting leader election")
         self.lock.acquire()
-        current_position = helper.find_index_by_identifier(self.nodeId, self.nodes) + 1
-        print("Current position is: ", current_position)
+        current_position = utils.find_index_by_identifier(self.nodeId, self.nodes) + 1
+        print("Current node's position is: ", current_position)
         print("The nodes in the list are: ", self.nodes)
         self.algoFlag = True
         self.coordinatorMessageFlag = False
@@ -114,13 +115,13 @@ class BullyLeaderElection:
         self.algoFlag = False
 
         print(
-            "Leader is elected and the details are : ",
+            "Leader election is complete. The leader details are: ",
             {"ip": self.nodeIP, "port": self.nodePort, "id": self.nodeId},
         )
 
         close = False
         for node in range(len(self.nodes) - 1):
-            sock = helper.initialize_socket(self.nodeIP)
+            sock = utils.initialize_socket(self.nodeIP)
             if node == (current_position - 1):
                 continue
             try:
@@ -157,9 +158,9 @@ class BullyLeaderElection:
             :param nodeId: The ID of the node that is forwarding the message.
         """
 
-        helper.delay(self.delay, TOTAL_DELAY)
+        utils.delay(self.delay, TOTAL_DELAY)
         dest = (node["ip"], node["port"])
-        msg = helper.build_message(
+        msg = utils.build_message(
             nodeId, message_type.value, self.nodePort, self.nodeIP
         )
         try:
@@ -221,7 +222,7 @@ class BullyLeaderElection:
         """
 
         self.lock.acquire()
-        sock = helper.initialize_socket(self.nodeIP)
+        sock = utils.initialize_socket(self.nodeIP)
         try:
             print((msg["ip"], msg["port"]))
             sock.connect((msg["ip"], msg["port"]))
@@ -256,7 +257,7 @@ class BullyLeaderElection:
         ack_nodes = self.checkedNodesLength
         exit = False
         for node in range(index, len(self.nodes)):
-            sock = helper.initialize_socket(self.nodeIP)
+            sock = utils.initialize_socket(self.nodeIP)
             try:
                 sock.connect((self.nodes[node]["ip"], self.nodes[node]["port"]))
                 self.forward_message(
@@ -312,10 +313,10 @@ class BullyLeaderElection:
             data = eval(data.decode("utf-8"))
 
             if self.leaderID == self.nodeId and data["type"] == Type["HEARTBEAT"].value:
-                print("Received heartbeat from node: ", data["id"])
-                helper.delay(self.delay, TOTAL_DELAY)
+                print("Heartbeat received from node: ", data["id"])
+                utils.delay(self.delay, TOTAL_DELAY)
 
-                msg = helper.build_message(
+                msg = utils.build_message(
                     self.nodeId, Type["ACK"].value, self.nodePort, self.nodeIP
                 )
                 print("Sending ack to node: ", data["id"])
@@ -329,14 +330,14 @@ class BullyLeaderElection:
                 continue
 
             elif data["type"] == Type["CONNECT_TO_CLIENT"].value:
-                print(f"Data received from client: {data}")
+                print(f"Received data from client: {data}")
                 connection.close()
 
                 self.pub_sub.process_client_data(data)
                 continue
 
             elif data["type"] == Type["PUBLISH_DATA_TO_SUBSCRIBERS"].value:
-                print(f"Data received from Publisher: {data}")
+                print(f"Received data from Publisher: {data}")
                 connection.close()
 
                 self.pub_sub.publish_event_to_subscribers(data["businessType"], data.get("offer", ""))
@@ -352,7 +353,7 @@ class BullyLeaderElection:
                     print(data, "\n\n")
                     str(data).encode("utf-8")
                     print(data)
-                    msg = helper.build_message(
+                    msg = utils.build_message(
                         self.nodeId, Type["SUBSCRIBE"].value, self.nodePort, self.nodeIP
                     )
                     connection.send(str(data).encode("utf-8"))
@@ -398,142 +399,6 @@ class BullyLeaderElection:
         )
 
         return logging
-class HeartBeat:
-    def __init__(
-        self,
-        nodeIP: str,
-        nodePort: int,
-        nodeId: int,
-        nodes: list,
-        socket: socket,
-        log_data: bool,
-        delay_time_interval: bool,
-        is_bully_algorithm: bool,
-        leader_node_ip: str,
-        leader_node_port: int,
-        leader_id: int,
-        lock: Lock,
-        algoFlag: bool,
-    ):
-        self.nodeIP = nodeIP
-        self.nodePort = nodePort
-        self.nodeId = nodeId
-        self.nodes = nodes
-        self.socket = socket
-        self.verbose = log_data
-        self.delay = delay_time_interval
-        self.algo = is_bully_algorithm
-        self.leaderIP = leader_node_ip
-        self.leaderPort = leader_node_port
-        self.leaderID = leader_id
-        self.lock = lock
-        self.algoFlag = algoFlag
-
-        self.start_heartbeat()
-
-    def start_heartbeat(self):
-        """
-        Creates a hearbeat socket and starts sending heartbeat to the leader node. 
-        If the leader node is not available, handle_crash is called.
-        
-        """
-        while True:
-            heratbeat_socket = helper.initialize_socket(self.nodeIP)
-            address = heratbeat_socket.getsockname()
-
-            time.sleep(HEARTBEAT_TIME)
-            self.lock.acquire()
-
-            if self.algoFlag or (self.leaderID in [self.nodeId, DEFAULT_ID]):
-                self.lock.release()
-                continue
-
-            index = helper.find_index_by_identifier(self.leaderID, self.nodes)
-            info = self.nodes[index]
-
-            print("Creating heartbeat message...")
-
-            msg = helper.build_message(
-                self.nodeId, Type["HEARTBEAT"].value, address[1], address[0]
-            )
-
-            dest = (info["ip"], info["port"])
-
-            print("Heartbeat message is created")
-            try:
-                heratbeat_socket.connect(dest)
-                print(f"sending heartbeat to the leader node with id: {info['id']}")
-                heratbeat_socket.send(msg)
-                self.receive_acknowledgement(
-                    heratbeat_socket,
-                    dest,
-                    TOTAL_DELAY,
-                    self.algo,
-                    self.nodes,
-                    self.lock,
-                    self.leaderID,
-                )
-                print(f"received ack from the Leader\n\n")
-
-            except ConnectionRefusedError:
-                heratbeat_socket.close()
-                self.handle_crash(self.algo, self.lock)
-    def receive_acknowledgement(self, sock, dest, waiting, algo, nodes, lock, leaderID):
-        """
-        Processes the hearbeat acknowledgement received from leader. 
-        If the acknowledgement is not received within the waiting time,
-        handle_crash is called.
-        """
-        start = round(time.time())
-        sock.settimeout(waiting)
-
-        try:
-            data = sock.recv(BUFF_SIZE)
-        except (socket.timeout, ConnectionResetError):
-            sock.close()
-            self.handle_crash(algo, lock)
-            return
-
-        if not data:
-            sock.close()
-            self.handle_crash(algo, lock)
-            return
-
-        msg = eval(data.decode("utf-8"))
-
-        if (msg["id"] == leaderID) and (msg["type"] == Type["ACK"].value):
-            lock.release()
-
-        else:
-            stop = round(time.time())
-            waiting -= stop - start
-            self.receive_acknowledgement(
-                sock, dest, waiting, algo, self.nodes, lock, leaderID
-            )
-
-        addr = (msg["ip"], msg["port"])
-        sock.close()
-
-    def handle_crash(self, algo, lock):
-        """
-        Handles the crash of the leader node. Initiates a new election.
-
-        """
-        self.nodes.pop()
-        lock.release()
-        BullyLeaderElection(
-            self.nodeIP,
-            self.nodePort,
-            self.nodeId,
-            self.nodes,
-            self.socket,
-            self.verbose,
-            self.delay,
-            self.algo,
-            self.leaderIP,
-            self.leaderPort,
-        )
-
 
 
 

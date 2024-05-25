@@ -5,7 +5,7 @@ import time
 from math import floor
 from random import randint
 
-from src.local_buisness.constants import constants as const
+from constants import constants as const
 
 BUFF_SIZE = const.BUFF_SIZE
 Type = const.Type

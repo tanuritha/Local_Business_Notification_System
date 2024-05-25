@@ -4,7 +4,7 @@ import sys
 from threading import Thread
 import time
 
-from src.local_buisness.constants.constants import Type
+from constants.constants import Type
 
 
 BUFF_SIZE = 1024
@@ -60,9 +60,9 @@ class Subscriber:
 
         try:
             server_socket.connect(address)
-            print("Sending the connection request to the leader...")
+            print("Sending connection request to the leader")
             server_socket.send(json.dumps(msg).encode("utf-8"))
-            print("Connection request sent to the leader")
+            print("Connection request sent to the leader node")
         except BaseException as e:
             print("Unable to connect to Leader", e)
         finally:
@@ -84,7 +84,7 @@ class Subscriber:
 
             while True:
                 conn, addr = subscriber_socket.accept()
-                print(f"Connection established with {addr}, waiting for data...")
+                print(f"Connection established with {addr}, waiting for data")
                 # Using a loop to handle multiple messages
                 while True:
                     data = conn.recv(BUFF_SIZE)

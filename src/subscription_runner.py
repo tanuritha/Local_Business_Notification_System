@@ -1,19 +1,19 @@
 import argparse
 import pyfiglet
 import os
-from src.local_buisness.modules.subscriber import Subscriber
+from modules.subscriber import Subscriber
 
 
 def run_subscriber():
     parser = argparse.ArgumentParser(
-        description="Implementation of distributed election algorithms.\nGeneric server_node."
+        description="Subscriber Node"
     )
 
     parser.add_argument(
         "-v",
         "--verbose",
         default=False,
-        help="increase output verbosity",
+        help="Increase output verbosity",
         action="store_true",
     )
     parser.add_argument(
@@ -21,13 +21,13 @@ def run_subscriber():
         "--config_file",
         action="store",
         required=True,
-        help="needed a config file in json format",
+        help="Requires a JSON config file",
     )
 
     args = parser.parse_args()
 
     os.system("clear")
-    intro = pyfiglet.figlet_format("SUBSCRIBER", font="slant")
+    intro = pyfiglet.figlet_format("SUBSCRIBER", font="doom")
     print(intro)
 
     subscriber_node = Subscriber(args.verbose, args.config_file)

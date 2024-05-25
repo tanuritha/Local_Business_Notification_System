@@ -2,12 +2,12 @@ import json
 import logging
 import sys
 
-from src.local_buisness.constants.constants import (
+from constants.constants import (
     BUFF_SIZE,
     DEFAULT_ID,
 )
-from src.local_buisness.utils import utils as helper
-from .leader_election_heartbeat import BullyLeaderElection, Type
+from utils import utils as helper
+from .leader_election import BullyLeaderElection, Type
 
 
 class ServerNode:
@@ -81,7 +81,7 @@ class ServerNode:
             sys.exit(1)
 
         # Send registration message to the registry service
-        print("Connected to register service, sending message to register service")
+        print("Connected to register service. Sending message to register service")
         register_socket.send(msg)
 
         data = register_socket.recv(BUFF_SIZE)
@@ -89,7 +89,7 @@ class ServerNode:
         print("Received data from register service")
         if not data:
             sock.close()
-            print("No data is received from register service")
+            print("No data received from register service")
             sys.exit(1)
 
         data = eval(data.decode("utf-8"))
@@ -102,7 +102,7 @@ class ServerNode:
         # Check if there are enough nodes
         if len(data) == 1:
             sock.close()
-            print("Not enough nodes generated!")
+            print("Not enough nodes started.")
             sys.exit(1)
 
         if self.algorithm:

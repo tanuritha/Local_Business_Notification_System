@@ -2,33 +2,33 @@ import argparse
 import pyfiglet
 import os
 
-from src.local_buisness.modules.server_node import ServerNode
+from modules.server_node import ServerNode
 
 
 def run_server_node():
     algorithm_options = argparse.ArgumentParser(
-        description="Implementation of distributed election algorithms.\nGeneric server_node."
+        description="Server_node."
     )
 
     algorithm_options.add_argument(
         "-v",
         "--verbose",
         default=False,
-        help="increase output verbosity",
+        help="Increases output verbosity",
         action="store_true",
     )
     algorithm_options.add_argument(
         "-d",
         "--delay",
         default=False,
-        help="generate a random delay to forwarding messages",
+        help="Adds a random delay amount for the forwarding messages",
         action="store_true",
     )
     algorithm_options.add_argument(
         "-c",
         "--config_file",
         action="store",
-        help="needed a config file in json format",
+        help="Requires a JSON config file",
     )
 
     args = algorithm_options.parse_args()
@@ -37,9 +37,9 @@ def run_server_node():
         algorithm_options.error("JSON FILE NOT PROVIDED")
 
     os.system("clear")
-    intro = pyfiglet.figlet_format("NODE", font="slant")
+    intro = pyfiglet.figlet_format("NODE", font="doom")
     print(intro)
-    print("This is a server_node of the distributed system")
+    print("This is a server_node")
 
     node = ServerNode(args.verbose, True, args.config_file, args.delay)
     node.start_server()

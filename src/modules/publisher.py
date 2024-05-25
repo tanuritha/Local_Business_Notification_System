@@ -2,7 +2,7 @@ import json
 import socket
 import time
 
-from src.local_buisness.constants.constants import Type
+from constants.constants import Type
 
 class Publisher:
     def __init__(self, verbose: bool, config_path: str):
@@ -25,13 +25,13 @@ class Publisher:
 
         try:
             server_socket.connect(address)
-            print("Connected to Leader Node, Sending message to Leader server_node")
+            print("Connected to Leader Node. Sending message to Leader server_node")
             server_socket.send(json.dumps(msg).encode("utf-8"))
             server_socket.close()
 
             self.publish_data()
         except BaseException as e:
-            print("Server server_node not available", e)
+            print("Server Node not available", e)
 
 
 
