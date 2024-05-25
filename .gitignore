@@ -1,6 +1,0 @@
-__pycache__
-*.pyc
-venv/
-dist/
-
-/src/campus_event_notification_service/modules/.mypy_cache/
